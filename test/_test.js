@@ -16,6 +16,11 @@
 mocha.setup("bdd");
 window.assert = chai.assert;
 
+// Override the database id.
+window.Whisper          = window.Whisper          || {};
+window.Whisper.Database = window.Whisper.Database || {};
+Whisper.Database.id = 'test';
+
 /*
  * global helpers for tests
  */

@@ -24,8 +24,7 @@
 
             new Whisper.ConversationListView({el: $('#contacts')});
             window.addEventListener('resize', this.resize.bind(this));
-            window.addEventListener('storage', function () {Whisper.Threads.fetch(); });
-            Whisper.Threads.fetch({reset: true});
+            Whisper.Conversations.fetch({reset: true});
         },
         events: {
             'click #new-message': 'new_message',
@@ -69,8 +68,8 @@
     } else {
         textsecure.storage.putUnencrypted("unreadCount", 0);
         extension.navigator.setBadgeText("");
-        if (Whisper.Threads.length) {
-            Whisper.Threads.at(0).trigger('render');
+        if (Whisper.Conversations.length) {
+            Whisper.Conversations.at(0).trigger('render');
         }
     }
 }());
