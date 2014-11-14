@@ -109,7 +109,7 @@
         });
         after(clear);
 
-        it('contains its own messages',function(done){
+        it('contains its own messages', function (done) {
             var convo = new Whisper.ConversationCollection().add({id: 'foobar'});
             convo.fetch().then(function() {
                 assert.notEqual(convo.messages().length, 0);
@@ -117,11 +117,31 @@
             });
         });
 
-        it('contains only its own messages',function(done){
+        it('contains only its own messages', function (done) {
             var convo = new Whisper.ConversationCollection().add({id: 'barfoo'});
             convo.fetch().then(function() {
                 assert.strictEqual(convo.messages().length, 0);
                 done();
+            });
+        });
+
+        it('has most recent messages first', function(done) {
+            var convo = new Whisper.ConversationCollection().add({id: 'barfoo'});
+            convo.messages().add({
+                body: 'first message',
+                conversationId: convo.id,
+                timestamp: new Date().getTime() - 5000
+            }).save().then(function() {
+                convo.messages().add({
+                    body: 'second message',
+                    conversationId: convo.id
+                }).save().then(function() {
+                    convo.fetch().then(function() {
+                        assert.strictEqual(convo.messages().at(0).get('body'), 'second message');
+                        assert.strictEqual(convo.messages().at(1).get('body'), 'first message');
+                        done();
+                    });
+                });
             });
         });
     });

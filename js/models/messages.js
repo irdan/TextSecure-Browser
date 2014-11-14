@@ -21,6 +21,7 @@
     var Message  = Backbone.Model.extend({
         database: Whisper.Database,
         storeName: 'messages',
+        defaults: function() { return { timestamp: new Date().getTime() }; },
         validate: function(attributes, options) {
             var required = ['timestamp', 'conversationId'];
             var missing = _.filter(required, function(attr) { return !attributes[attr]; });
@@ -38,7 +39,7 @@
         model: Message,
         database: Whisper.Database,
         storeName: 'messages',
-        comparator: 'timestamp',
+        comparator: function(m) { return -m.get('timestamp'); },
         destroyAll: function () {
             return Promise.all(this.models.map(function(m) {
                 return new Promise(function(resolve, reject) {

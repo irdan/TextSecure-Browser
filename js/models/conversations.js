@@ -33,7 +33,7 @@
      }));
    };
 
-  var Conversation = Backbone.Model.extend({
+  var Conversation = Whisper.Conversation = Backbone.Model.extend({
     database: Whisper.Database,
     storeName: 'conversations',
     defaults: function() {
@@ -46,6 +46,10 @@
       };
     },
 
+    initialize: function() {
+        this.messageCollection = new Whisper.MessageCollection();
+    },
+
     validate: function(attributes, options) {
       var required = ['type', 'timestamp', 'image', 'name'];
       var missing = _.filter(required, function(attr) { return !attributes[attr]; });
@@ -55,12 +59,13 @@
     sendMessage: function(message, attachments) {
       return encodeAttachments(attachments).then(function(base64_attachments) {
         var timestamp = Date.now();
-        this.messages().add({ type: 'outgoing',
-                              conversationType: this.get('type'),
-                              body: message,
+        this.messages().add({ body: message,
+                              timestamp: timestamp,
                               conversationId: this.id,
-                              attachments: base64_attachments,
-                              timestamp: timestamp }).save();
+                              conversationType: this.get('type'),
+                              type: 'outgoing',
+                              attachments: base64_attachments
+        }).save();
 
         this.save({ timestamp:   timestamp,
                     unreadCount: 0,
@@ -84,13 +89,13 @@
       encodeAttachments(decrypted.message.attachments).then(function(base64_attachments) {
         var timestamp = decrypted.pushMessage.timestamp.toNumber();
         var m = this.messages().add({
-          person: decrypted.pushMessage.source,
-          conversationType: this.get('type'),
-          conversationId: this.id,
           body: decrypted.message.body,
+          timestamp: timestamp,
+          conversationId: this.id,
+          conversationType: this.get('type'),
           attachments: base64_attachments,
           type: 'incoming',
-          timestamp: timestamp
+          sender: decrypted.pushMessage.source
         });
         m.save();
 
@@ -103,13 +108,10 @@
     },
 
     fetch: function() {
-        return this.messages().fetch({conditions: {conversationId: this.id}});
+        return this.messageCollection.fetch({conditions: {conversationId: this.id }});
     },
 
     messages: function() {
-      if (!this.messageCollection) {
-        this.messageCollection = new Whisper.MessageCollection();
-      }
       return this.messageCollection;
     },
   });
